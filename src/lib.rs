@@ -7,7 +7,7 @@ use nom::{
     sequence::{ separated_pair, preceded, delimited },
     multi::{ separated_list1, separated_list0 },
     branch::alt,
-    combinator::opt,
+    combinator::{opt, eof},
 };
 
 // Struct used for holding Twitch IRC message data, partly based on the example
@@ -69,7 +69,7 @@ pub fn message(s: &str) -> IResult<&str, Message> {
     let (s, tags) = opt(tags)(s)?;
     let (s, source) = opt(source)(s)?;
     let (s, command) = command(s)?;
-    let (s, parameters) = delimited(space1, parameters, crlf)(s)?;
+    let (s, parameters) = delimited(space1, parameters, alt((crlf, eof)))(s)?;
 
     let m = Message {
         tags: tags.map(|ts| ts.into_iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()),
